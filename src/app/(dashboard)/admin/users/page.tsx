@@ -1,152 +1,152 @@
-'use client'
-
 import React from 'react'
-import { motion } from 'framer-motion'
-import { 
-  Users, 
-  ShieldCheck, 
-  ShieldAlert, 
-  MoreVertical, 
-  Search,
-  UserCog
-} from 'lucide-react'
+import { redirect } from 'next/navigation'
+import { Users, ShieldCheck, MoreVertical, Search, UserCog, ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from '@/components/ui/table'
 import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
+import { createClient } from '@/utils/supabase/server'
 
-const allUsers = [
-  { id: '1', name: 'Raj G', email: 'rajg50103@gmail.com', isAdmin: true, status: 'Active', joinedAt: 'Apr 01, 2026' },
-  { id: '2', name: 'John Doe', email: 'john@example.com', isAdmin: false, status: 'Active', joinedAt: 'Apr 10, 2026' },
-  { id: '3', name: 'Sarah Wilson', email: 'sarah@example.com', isAdmin: false, status: 'Active', joinedAt: 'Apr 12, 2026' },
-  { id: '4', name: 'Alex Rivera', email: 'alex@example.com', isAdmin: false, status: 'Active', joinedAt: 'Apr 15, 2026' },
-]
+export default async function AdminUsersPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-export default function AdminUsersPage() {
+  // Enforce admin-only access — redirect members away
+  if (!user) redirect('/login')
+  const { data: currentProfile } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single()
+  if (!currentProfile?.is_admin) redirect('/dashboard')
+
+  const { data: users } = await supabase
+    .from('profiles')
+    .select('*')
+    .order('updated_at', { ascending: false })
+
+  const total = users?.length ?? 0
+  const globalAdmins = users?.filter((u: any) => u.is_admin).length ?? 0
+
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <ShieldAlert className="w-5 h-5 text-rose-500" />
-            <h1 className="text-3xl font-bold text-white tracking-tight">Admin Console</h1>
+            <ShieldAlert className="w-5 h-5 text-black" />
+            <h1 className="text-2xl font-bold text-black tracking-tight">Admin Console</h1>
           </div>
-          <p className="text-slate-400">Global user management and system settings.</p>
+          <p className="text-sm text-slate-500">Manage global user access and permissions.</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="relative w-full md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-            <Input 
-              placeholder="Search all users..." 
-              className="pl-10 bg-slate-900/50 border-slate-800 text-white"
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            <Input
+              placeholder="Search users…"
+              className="h-8 pl-9 text-sm bg-white border-slate-200 text-black placeholder:text-slate-400 focus-visible:ring-black w-52"
             />
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-slate-900/50 border-slate-800">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-400">Total Users</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">482</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-slate-900/50 border-slate-800">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-400">System Admins</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-rose-500">3</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-slate-900/50 border-slate-800">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-400">New Signups (24h)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-500">12</div>
-          </CardContent>
-        </Card>
+      {/* Summary */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Users', value: total },
+          { label: 'Global Admins', value: globalAdmins },
+          { label: 'Regular Users', value: total - globalAdmins },
+          { label: 'Active Today', value: '—' },
+        ].map((s) => (
+          <Card key={s.label} className="bg-white border-slate-200 shadow-none">
+            <CardContent className="p-4">
+              <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">{s.label}</p>
+              <p className="text-2xl font-bold text-black mt-1">{s.value}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm overflow-hidden">
-        <CardHeader className="border-b border-slate-800/50 flex flex-row items-center justify-between">
-          <CardTitle className="text-xl text-white flex items-center gap-2">
-            <Users className="w-5 h-5 text-indigo-400" />
-            User Directory
+      {/* Table */}
+      <Card className="bg-white border-slate-200 shadow-none overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
+          <CardTitle className="text-base font-bold text-black flex items-center gap-2">
+            <Users className="w-4 h-4 text-slate-500" />
+            All Users
           </CardTitle>
-          <Button variant="outline" className="border-slate-800 text-slate-400 text-xs">Export CSV</Button>
+          <Button variant="outline" size="sm" className="border-slate-200 text-slate-600 hover:bg-slate-50 text-xs h-7">
+            Export CSV
+          </Button>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader className="bg-slate-950/50">
-              <TableRow className="border-slate-800 hover:bg-transparent">
-                <TableHead className="text-slate-400">User</TableHead>
-                <TableHead className="text-slate-400">System Role</TableHead>
-                <TableHead className="text-slate-400">Joined Date</TableHead>
-                <TableHead className="text-slate-400 text-right">Access</TableHead>
+            <TableHeader>
+              <TableRow className="bg-slate-50 border-slate-100 hover:bg-slate-50">
+                <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-widest">User</TableHead>
+                <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Role</TableHead>
+                <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Joined</TableHead>
+                <TableHead className="text-right"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {allUsers.map((user) => (
-                <TableRow key={user.id} className="border-slate-800 hover:bg-slate-800/20 transition-colors">
+              {!users || users.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-12 text-sm text-slate-400">
+                    No users found.
+                  </TableCell>
+                </TableRow>
+              ) : users.map((user: any) => (
+                <TableRow key={user.id} className="border-slate-100 hover:bg-slate-50 transition-colors">
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-9 w-9 border border-slate-800">
+                      <Avatar className="h-8 w-8 border border-slate-200">
                         <AvatarImage src={`https://avatar.vercel.sh/${user.email}`} />
-                        <AvatarFallback>{user.name[0]}</AvatarFallback>
+                        <AvatarFallback className="text-xs bg-slate-100 text-slate-600">
+                          {user.full_name?.[0]?.toUpperCase() ?? 'U'}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-sm font-medium text-slate-200">{user.name}</p>
-                        <p className="text-xs text-slate-500">{user.email}</p>
+                        <p className="text-sm font-medium text-black">{user.full_name ?? '—'}</p>
+                        <p className="text-xs text-slate-400">{user.email}</p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      {user.isAdmin ? (
-                        <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 gap-1">
-                          <ShieldCheck className="w-3 h-3" />
-                          Global Admin
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-slate-500 border-slate-800">
-                          Regular User
-                        </Badge>
-                      )}
-                    </div>
+                    {user.is_admin ? (
+                      <Badge className="bg-black text-white text-[10px] font-semibold gap-1 shadow-none hover:bg-slate-800">
+                        <ShieldCheck className="w-3 h-3" /> Global Admin
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-slate-500 border-slate-200 text-[10px] font-semibold">
+                        User
+                      </Badge>
+                    )}
                   </TableCell>
-                  <TableCell className="text-slate-500 text-sm">{user.joinedAt}</TableCell>
+                  <TableCell className="text-sm text-slate-500">
+                    {user.updated_at
+                      ? new Date(user.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : '—'}
+                  </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500">
+                      <DropdownMenuTrigger render={
+                        <button className="h-8 w-8 flex items-center justify-center rounded-md text-slate-400 hover:text-black hover:bg-slate-100 transition-colors ml-auto">
                           <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800 text-slate-200">
-                        <DropdownMenuItem className="hover:bg-slate-800 focus:bg-slate-800 gap-2">
-                          <UserCog className="w-4 h-4" />
-                          {user.isAdmin ? 'Demote to User' : 'Promote to Admin'}
+                        </button>
+                      } />
+                      <DropdownMenuContent align="end" className="w-48 bg-white border-slate-200 shadow-lg">
+                        <DropdownMenuItem className="text-sm cursor-pointer focus:bg-slate-50 gap-2">
+                          <UserCog className="w-4 h-4 text-slate-500" />
+                          {user.is_admin ? 'Remove Admin' : 'Make Admin'}
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="hover:bg-slate-800 focus:bg-slate-800 text-rose-400 focus:text-rose-400">
+                        <DropdownMenuItem className="text-sm cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50">
                           Suspend User
                         </DropdownMenuItem>
                       </DropdownMenuContent>

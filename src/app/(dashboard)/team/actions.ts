@@ -3,58 +3,46 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function inviteMember(projectId: string, email: string, role: 'admin' | 'member' = 'member') {
+export async function inviteMember(formData: FormData) {
   const supabase = await createClient()
-  
-  // Find user by email
-  const { data: profile, error: profileError } = await supabase
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const email = (formData.get('email') as string)?.trim().toLowerCase()
+  const projectId = formData.get('projectId') as string
+  const role = (formData.get('role') as string) || 'member'
+
+  if (!email) throw new Error('Email is required.')
+  if (!projectId) throw new Error('Please select a project.')
+
+  // Find the user by email in profiles
+  const { data: targetProfile, error: profileError } = await supabase
     .from('profiles')
-    .select('id')
+    .select('id, full_name, email')
     .eq('email', email)
     .single()
 
-  if (profileError || !profile) {
-    throw new Error('User not found. They must sign up first.')
+  if (profileError || !targetProfile) {
+    throw new Error(`No user found with email "${email}". They must sign up first.`)
   }
+
+  // Check if already a member
+  const { data: existing } = await supabase
+    .from('project_members')
+    .select('id')
+    .eq('project_id', projectId)
+    .eq('user_id', targetProfile.id)
+    .single()
+
+  if (existing) throw new Error(`${email} is already a member of this project.`)
 
   // Add to project_members
-  const { error: inviteError } = await supabase
-    .from('project_members')
-    .insert({
-      project_id: projectId,
-      user_id: profile.id,
-      role
-    })
-
-  if (inviteError) {
-    if (inviteError.code === '23505') throw new Error('User is already a member of this project.')
-    throw new Error(inviteError.message)
-  }
-
-  revalidatePath('/team')
-  revalidatePath(`/projects/${projectId}`)
-}
-
-export async function removeMember(projectId: string, userId: string) {
-  const supabase = await createClient()
   const { error } = await supabase
     .from('project_members')
-    .delete()
-    .eq('project_id', projectId)
-    .eq('user_id', userId)
+    .insert({ project_id: projectId, user_id: targetProfile.id, role })
 
   if (error) throw new Error(error.message)
-  revalidatePath('/team')
-}
 
-export async function updateMemberRole(projectId: string, userId: string, role: 'admin' | 'member') {
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('project_members')
-    .update({ role })
-    .eq('project_id', projectId)
-    .eq('user_id', userId)
-
-  if (error) throw new Error(error.message)
   revalidatePath('/team')
+  return { name: targetProfile.full_name ?? email }
 }

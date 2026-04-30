@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus } from 'lucide-react'
 import { 
   Dialog, 
   DialogContent, 
@@ -27,14 +26,13 @@ export function NewProjectModal({ children }: { children: React.ReactNode }) {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setIsLoading(true)
-
     const formData = new FormData(event.currentTarget)
     try {
       await createProject(formData)
-      toast.success('Project created successfully!')
+      toast.success('Project created!')
       setOpen(false)
       router.refresh()
-    } catch (error) {
+    } catch {
       toast.error('Failed to create project.')
     } finally {
       setIsLoading(false)
@@ -43,45 +41,54 @@ export function NewProjectModal({ children }: { children: React.ReactNode }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-800 text-slate-200">
+      <DialogTrigger render={children} />
+      <DialogContent className="sm:max-w-md bg-white border border-slate-200 text-black shadow-xl">
         <form onSubmit={onSubmit}>
-          <DialogHeader>
-            <DialogTitle className="text-white">Create New Project</DialogTitle>
-            <DialogDescription className="text-slate-400">
-              Set up a new workspace for your team and tasks.
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-lg font-bold text-black">New Project</DialogTitle>
+            <DialogDescription className="text-sm text-slate-500">
+              Create a workspace for your team.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name" className="text-slate-300">Project Name</Label>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="text-sm font-medium text-slate-700">Project Name</Label>
               <Input
                 id="name"
                 name="name"
                 placeholder="e.g. Website Redesign"
                 required
-                className="bg-slate-950/50 border-slate-700 text-white focus:ring-indigo-500"
+                className="bg-white border-slate-200 text-black placeholder:text-slate-400 focus-visible:ring-black"
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description" className="text-slate-300">Description</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="description" className="text-sm font-medium text-slate-700">Description</Label>
               <Textarea
                 id="description"
                 name="description"
                 placeholder="What is this project about?"
-                className="bg-slate-950/50 border-slate-700 text-white focus:ring-indigo-500"
+                rows={3}
+                className="bg-white border-slate-200 text-black placeholder:text-slate-400 focus-visible:ring-black resize-none"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button 
-              type="submit" 
-              disabled={isLoading}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white"
+
+          <DialogFooter className="pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              className="border-slate-200 text-slate-600 hover:bg-slate-50"
             >
-              {isLoading ? 'Creating...' : 'Create Project'}
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-black hover:bg-slate-800 text-white"
+            >
+              {isLoading ? 'Creating…' : 'Create Project'}
             </Button>
           </DialogFooter>
         </form>
