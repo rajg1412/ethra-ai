@@ -9,6 +9,7 @@ CREATE TABLE profiles (
   full_name TEXT,
   email TEXT UNIQUE,
   avatar_url TEXT,
+  is_admin BOOLEAN DEFAULT FALSE,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

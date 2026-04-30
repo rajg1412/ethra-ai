@@ -14,6 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { NewProjectModal } from '@/components/NewProjectModal'
 
 const stats = [
   { label: 'Active Projects', value: '12', icon: BarChart3, color: 'text-blue-400', bg: 'bg-blue-400/10' },
@@ -37,10 +38,12 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard</h1>
           <p className="text-slate-400 mt-1">Welcome back! Here's what's happening today.</p>
         </div>
-        <Button className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 px-6 shadow-lg shadow-indigo-500/20">
-          <Plus className="w-4 h-4" />
-          <span>New Project</span>
-        </Button>
+        <NewProjectModal>
+          <Button className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 px-6 shadow-lg shadow-indigo-500/20">
+            <Plus className="w-4 h-4" />
+            <span>New Project</span>
+          </Button>
+        </NewProjectModal>
       </div>
 
       {/* Stats Grid */}
