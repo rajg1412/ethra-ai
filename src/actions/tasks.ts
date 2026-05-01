@@ -22,7 +22,9 @@ export async function updateTaskStatus(taskId: string, status: string) {
 }
 
 export async function createTask(formData: FormData) {
-  const result = await createTaskService(Object.fromEntries(formData))
+  const result = await createTaskService(
+    Object.fromEntries(formData) as Parameters<typeof createTaskService>[0]
+  )
   revalidatePath('/dashboard')
   revalidatePath('/tasks')
   revalidatePath(`/projects/${result.project_id}`)

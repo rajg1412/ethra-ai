@@ -1,19 +1,26 @@
 'use client'
 
-import React, { useState, Suspense } from 'react'
+import { useActionState, useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { login } from '../actions'
+import { login, type AuthState } from '../actions'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AlertCircle, Eye, EyeOff, LogIn } from 'lucide-react'
 
 function LoginContent() {
-  const searchParams = useSearchParams()
-  const error = searchParams.get('error')
+  const [state, formAction] = useActionState<AuthState, FormData>(login, {
+    error: null,
+  })
   const [showPassword, setShowPassword] = useState(false)
 
   return (
@@ -31,7 +38,9 @@ function LoginContent() {
             <LogIn className="text-white w-5 h-5" />
           </div>
           <h1 className="text-2xl font-bold text-black tracking-tight">Welcome Back</h1>
-          <p className="text-slate-500 mt-1 text-sm text-center">Enter your credentials to access your workspace</p>
+          <p className="text-slate-500 mt-1 text-sm text-center">
+            Enter your credentials to access your workspace
+          </p>
         </div>
 
         <Card className="bg-white border-slate-200 shadow-xl rounded-xl">
@@ -42,16 +51,11 @@ function LoginContent() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-            {error && (
-              <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            <form action={login} className="grid gap-4">
+            <form action={formAction} className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="email" className="text-slate-700 text-sm font-medium">Email</Label>
+                <Label htmlFor="email" className="text-slate-700 text-sm font-medium">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -64,7 +68,9 @@ function LoginContent() {
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-slate-700 text-sm font-medium">Password</Label>
+                  <Label htmlFor="password" className="text-slate-700 text-sm font-medium">
+                    Password
+                  </Label>
                   <Link
                     href="#"
                     className="text-xs text-slate-500 hover:text-black transition-colors underline decoration-slate-200 underline-offset-4"
@@ -91,14 +97,23 @@ function LoginContent() {
                   </button>
                 </div>
               </div>
-              <Button type="submit" className="w-full bg-black hover:bg-slate-800 text-white font-bold py-5 rounded-lg transition-all mt-2">
+              <Button
+                type="submit"
+                className="w-full bg-black hover:bg-slate-800 text-white font-bold py-5 rounded-lg transition-all mt-2"
+              >
                 Sign In
               </Button>
+              {state.error && (
+                <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{state.error}</span>
+                </div>
+              )}
             </form>
           </CardContent>
           <CardFooter className="flex flex-col gap-4 border-t border-slate-50 pt-6">
             <p className="text-sm text-center text-slate-500">
-              New here?{" "}
+              New here?{' '}
               <Link href="/signup" className="text-black hover:underline font-bold transition-all">
                 Create an account
               </Link>
@@ -111,9 +126,5 @@ function LoginContent() {
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense fallback={null}>
-      <LoginContent />
-    </Suspense>
-  )
+  return <LoginContent />
 }

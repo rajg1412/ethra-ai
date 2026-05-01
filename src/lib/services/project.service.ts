@@ -1,11 +1,6 @@
 import 'server-only'
 
 import {
-  createProjectSchema,
-  getSchemaErrorMessage,
-  normalizeSchemaInput,
-} from '@/lib/schemas'
-import {
   getAuthContext,
   getProjectAccess,
   requireProjectAdminContext,
@@ -17,6 +12,7 @@ import type {
   ProjectSummary,
 } from '@/types/project.types'
 import type { TaskListItem } from '@/types/task.types'
+import { createProjectSchema } from '@/lib/schemas'
 import { z } from 'zod'
 
 const projectSummarySelect =
@@ -98,21 +94,16 @@ export async function getManageableProjects(): Promise<ManageableProject[]> {
   return Array.from(projectsById.values())
 }
 
-export async function createProject(input: Record<string, unknown>): Promise<ProjectDetail> {
+export async function createProject(
+  input: z.infer<typeof createProjectSchema>
+): Promise<ProjectDetail> {
   const { supabase, user } = await getAuthContext()
-  const result = createProjectSchema.safeParse(
-    normalizeSchemaInput(input)
-  )
-
-  if (!result.success) {
-    throw new Error(getSchemaErrorMessage(result.error))
-  }
 
   const { data: project, error } = await supabase
     .from('projects')
     .insert({
-      name: result.data.name.trim(),
-      description: result.data.description?.trim() || null,
+      name: input.name.trim(),
+      description: input.description?.trim() || null,
       owner_id: user.id,
     })
     .select(projectDetailSelect)

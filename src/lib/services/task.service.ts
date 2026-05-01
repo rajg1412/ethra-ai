@@ -84,22 +84,19 @@ export async function getTasks(projectId?: string): Promise<TaskListItem[]> {
   return (data ?? []) as TaskListItem[]
 }
 
-export async function createTask(input: Record<string, unknown>): Promise<TaskDetail> {
-  const result = createTaskSchema.safeParse(normalizeSchemaInput(input))
-  if (!result.success) {
-    throw new Error(getSchemaErrorMessage(result.error))
-  }
-
-  const projectAccess = await requireProjectAdminContext(result.data.projectId)
+export async function createTask(
+  input: z.infer<typeof createTaskSchema>
+): Promise<TaskDetail> {
+  const projectAccess = await requireProjectAdminContext(input.projectId)
   const { supabase } = projectAccess
   if (!projectAccess.canManageProject) {
     throw new Error('Forbidden')
   }
 
-  if (result.data.assignedTo) {
+  if (input.assignedTo) {
     await assertAssigneeBelongsToProject(
-      result.data.projectId,
-      result.data.assignedTo,
+      input.projectId,
+      input.assignedTo,
       supabase
     )
   }
@@ -107,12 +104,12 @@ export async function createTask(input: Record<string, unknown>): Promise<TaskDe
   const { data, error } = await supabase
     .from('tasks')
     .insert({
-      title: result.data.title.trim(),
-      description: result.data.description?.trim() || null,
-      project_id: result.data.projectId,
-      priority: result.data.priority,
-      assigned_to: result.data.assignedTo || null,
-      due_date: result.data.dueDate || null,
+      title: input.title.trim(),
+      description: input.description?.trim() || null,
+      project_id: input.projectId,
+      priority: input.priority,
+      assigned_to: input.assignedTo || null,
+      due_date: input.dueDate || null,
     })
     .select(taskDetailSelect)
     .single()

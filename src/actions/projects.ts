@@ -9,7 +9,9 @@ import {
 } from '@/lib/services/project.service'
 
 export async function createProject(formData: FormData) {
-  const project = await createProjectService(Object.fromEntries(formData))
+  const project = await createProjectService(
+    Object.fromEntries(formData) as Parameters<typeof createProjectService>[0]
+  )
   revalidatePath('/projects')
   revalidatePath('/dashboard')
   return project
