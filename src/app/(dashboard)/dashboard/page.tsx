@@ -27,10 +27,10 @@ export default async function DashboardPage() {
           <p className="text-sm text-slate-500 mt-1">Welcome back — here's what's happening.</p>
         </div>
         <NewProjectModal>
-          <div role="button" className="inline-flex items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md gap-2 cursor-pointer transition-colors">
+          <button className="inline-flex items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md gap-2 cursor-pointer transition-colors">
             <Plus className="w-4 h-4" />
             New Project
-          </div>
+          </button>
         </NewProjectModal>
       </div>
 

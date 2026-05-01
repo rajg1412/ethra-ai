@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Dialog,
@@ -32,7 +32,7 @@ export function NewTaskModal({
   projects,
   defaultProjectId,
 }: {
-  children: React.ReactNode
+  children: React.ReactElement
   projects?: Project[]
   defaultProjectId?: string
 }) {
@@ -41,14 +41,6 @@ export function NewTaskModal({
   const [priority, setPriority] = useState('medium')
   const [projectId, setProjectId] = useState(defaultProjectId ?? '')
   const router = useRouter()
-
-  // Reset on open
-  useEffect(() => {
-    if (open) {
-      setPriority('medium')
-      setProjectId(defaultProjectId ?? '')
-    }
-  }, [open, defaultProjectId])
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -62,27 +54,35 @@ export function NewTaskModal({
       toast.success('Task created!')
       setOpen(false)
       router.refresh()
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Failed to create task.')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to create task.')
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen)
+        if (nextOpen) {
+          setPriority('medium')
+          setProjectId(defaultProjectId ?? '')
+        }
+      }}
+    >
       <DialogTrigger render={children} />
       <DialogContent className="sm:max-w-md bg-white border border-slate-200 text-black shadow-xl">
         <form onSubmit={onSubmit}>
           <DialogHeader className="pb-4">
             <DialogTitle className="text-lg font-bold text-black">New Task</DialogTitle>
             <DialogDescription className="text-sm text-slate-500">
-              Add a task to track your team's work.
+              Add a task to track your team&apos;s work.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            {/* Title */}
             <div className="space-y-1.5">
               <Label htmlFor="task-title" className="text-sm font-medium text-slate-700">
                 Title <span className="text-red-500">*</span>
@@ -96,7 +96,6 @@ export function NewTaskModal({
               />
             </div>
 
-            {/* Description */}
             <div className="space-y-1.5">
               <Label htmlFor="task-desc" className="text-sm font-medium text-slate-700">Description</Label>
               <Textarea
@@ -109,10 +108,9 @@ export function NewTaskModal({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              {/* Priority */}
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium text-slate-700">Priority</Label>
-                <Select value={priority} onValueChange={setPriority}>
+                <Select value={priority} onValueChange={(val) => setPriority(val || 'medium')}>
                   <SelectTrigger className="bg-white border-slate-200 text-black focus:ring-black h-9">
                     <SelectValue />
                   </SelectTrigger>
@@ -124,7 +122,6 @@ export function NewTaskModal({
                 </Select>
               </div>
 
-              {/* Due date */}
               <div className="space-y-1.5">
                 <Label htmlFor="task-due" className="text-sm font-medium text-slate-700">Due Date</Label>
                 <Input
@@ -136,11 +133,10 @@ export function NewTaskModal({
               </div>
             </div>
 
-            {/* Project (optional) */}
             {projects && projects.length > 0 && (
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium text-slate-700">Project</Label>
-                <Select value={projectId} onValueChange={setProjectId}>
+                <Select value={projectId} onValueChange={(val) => setProjectId(val || '')}>
                   <SelectTrigger className="bg-white border-slate-200 text-black focus:ring-black h-9">
                     <SelectValue placeholder="Select project (optional)" />
                   </SelectTrigger>
@@ -168,7 +164,7 @@ export function NewTaskModal({
               disabled={isLoading}
               className="bg-black hover:bg-slate-800 text-white"
             >
-              {isLoading ? 'Adding…' : 'Add Task'}
+              {isLoading ? 'Adding...' : 'Add Task'}
             </Button>
           </DialogFooter>
         </form>

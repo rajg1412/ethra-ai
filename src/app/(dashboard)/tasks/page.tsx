@@ -1,14 +1,30 @@
 import React from 'react'
-import { Plus, Filter, Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Plus, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { getTasks } from './actions'
-import { getProjects } from '@/app/(dashboard)/projects/actions'
+import { getManageableProjects } from '@/app/(dashboard)/projects/actions'
+import { getAuthContext } from '@/lib/rbac'
 import { KanbanBoard } from '@/components/KanbanBoard'
 import { NewTaskModal } from '@/components/NewTaskModal'
 
+type ManageableProject = {
+  id: string
+  name: string
+}
+
 export default async function TasksPage() {
-  const [tasks, projects] = await Promise.all([getTasks(), getProjects()])
+  const { user, isAdmin } = await getAuthContext()
+  const [tasks, manageableProjects] = await Promise.all([
+    getTasks(),
+    getManageableProjects(),
+  ])
+
+  const projectOptions = manageableProjects.map((project: ManageableProject) => ({
+    id: project.id,
+    name: project.name,
+  }))
+  const manageableProjectIds = projectOptions.map((project) => project.id)
+  const canCreateTask = isAdmin || manageableProjectIds.length > 0
 
   return (
     <div className="space-y-8">
@@ -25,18 +41,23 @@ export default async function TasksPage() {
               className="h-8 pl-9 text-sm bg-white border-slate-200 text-black placeholder:text-slate-400 focus-visible:ring-black w-44"
             />
           </div>
-          <NewTaskModal projects={projects.map((p: any) => ({ id: p.id, name: p.name }))}>
-            <div role="button" className="h-8 inline-flex items-center justify-center rounded-md px-3 text-xs bg-black hover:bg-slate-800 text-white gap-1.5 cursor-pointer transition-colors">
-              <Plus className="w-3.5 h-3.5" />
-              Add Task
-            </div>
-          </NewTaskModal>
+          {canCreateTask && projectOptions.length > 0 && (
+            <NewTaskModal projects={projectOptions}>
+              <button className="h-8 inline-flex items-center justify-center rounded-md px-3 text-xs bg-black hover:bg-slate-800 text-white gap-1.5 cursor-pointer transition-colors">
+                <Plus className="w-3.5 h-3.5" />
+                Add Task
+              </button>
+            </NewTaskModal>
+          )}
         </div>
       </div>
 
       <KanbanBoard
+        currentUserId={user.id}
         initialTasks={tasks}
-        projects={projects.map((p: any) => ({ id: p.id, name: p.name }))}
+        projects={projectOptions}
+        manageableProjectIds={manageableProjectIds}
+        canCreateTask={canCreateTask}
       />
     </div>
   )

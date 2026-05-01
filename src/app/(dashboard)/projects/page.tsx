@@ -18,10 +18,10 @@ export default async function ProjectsPage() {
           <p className="text-sm text-slate-500 mt-1">All your team workspaces in one place.</p>
         </div>
         <NewProjectModal>
-          <div role="button" className="inline-flex items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md gap-2 cursor-pointer transition-colors">
+          <button className="inline-flex items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md gap-2 cursor-pointer transition-colors">
             <Plus className="w-4 h-4" />
             New Project
-          </div>
+          </button>
         </NewProjectModal>
       </div>
 
@@ -30,9 +30,9 @@ export default async function ProjectsPage() {
           <Folder className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-500 text-sm">No projects yet.</p>
           <NewProjectModal>
-            <div role="button" className="mt-4 inline-flex items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md cursor-pointer transition-colors">
+            <button className="mt-4 inline-flex items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md cursor-pointer transition-colors">
               Create your first project
-            </div>
+            </button>
           </NewProjectModal>
         </div>
       ) : (

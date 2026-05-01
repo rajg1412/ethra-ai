@@ -60,9 +60,7 @@ export function Navbar({ fullName = 'User', email = '', isAdmin = false }: Navba
         {/* Avatar dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger render={
-            <div
-              role="button"
-              tabIndex={0}
+            <button
               className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-slate-100 transition-colors cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-black"
             >
               <Avatar className="h-7 w-7 border border-slate-200">
@@ -74,7 +72,7 @@ export function Navbar({ fullName = 'User', email = '', isAdmin = false }: Navba
                 <p className="text-xs font-semibold text-black leading-tight">{fullName}</p>
                 <p className="text-[10px] text-slate-400 leading-tight">{isAdmin ? 'Global Admin' : 'Member'}</p>
               </div>
-            </div>
+            </button>
           } />
           <DropdownMenuContent align="end" className="w-52 bg-white border-slate-200 shadow-lg text-black">
             <DropdownMenuLabel className="pb-2">

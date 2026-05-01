@@ -40,8 +40,8 @@ export function InviteMemberModal({
       toast.success(`${result.name} has been added to the project!`)
       setOpen(false)
       router.refresh()
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Failed to invite member.')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to invite member.')
     } finally {
       setIsLoading(false)
     }
@@ -49,7 +49,7 @@ export function InviteMemberModal({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={children} />
+      <DialogTrigger render={children as React.ReactElement} />
       <DialogContent className="sm:max-w-md bg-white border border-slate-200 text-black shadow-xl">
         <form onSubmit={onSubmit}>
           <DialogHeader className="pb-4">
@@ -80,7 +80,7 @@ export function InviteMemberModal({
               {projects.length === 0 ? (
                 <p className="text-sm text-slate-400 italic">No projects yet. Create one first.</p>
               ) : (
-                <Select value={projectId} onValueChange={setProjectId}>
+                <Select value={projectId} onValueChange={(v) => setProjectId(v || '')}>
                   <SelectTrigger className="bg-white border-slate-200 text-black focus:ring-black h-9">
                     <SelectValue placeholder="Select a project" />
                   </SelectTrigger>
@@ -95,7 +95,7 @@ export function InviteMemberModal({
 
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-slate-700">Role</Label>
-              <Select value={role} onValueChange={setRole}>
+              <Select value={role} onValueChange={(v) => setRole(v || '')}>
                 <SelectTrigger className="bg-white border-slate-200 text-black focus:ring-black h-9">
                   <SelectValue />
                 </SelectTrigger>

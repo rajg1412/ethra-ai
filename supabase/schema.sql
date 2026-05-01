@@ -46,33 +46,114 @@ CREATE TABLE tasks (
 
 -- Set up Row Level Security (RLS)
 
+-- Shared authorization helpers
+CREATE OR REPLACE FUNCTION public.is_global_admin()
+RETURNS boolean AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.profiles
+    WHERE id = auth.uid()
+      AND is_admin = TRUE
+  );
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public;
+
+CREATE OR REPLACE FUNCTION public.can_access_project(project_uuid UUID)
+RETURNS boolean AS $$
+  SELECT public.is_global_admin()
+    OR EXISTS (
+      SELECT 1
+      FROM public.project_members
+      WHERE project_id = project_uuid
+        AND user_id = auth.uid()
+    )
+    OR EXISTS (
+      SELECT 1
+      FROM public.projects
+      WHERE id = project_uuid
+        AND owner_id = auth.uid()
+    );
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public;
+
+CREATE OR REPLACE FUNCTION public.can_manage_project(project_uuid UUID)
+RETURNS boolean AS $$
+  SELECT public.is_global_admin()
+    OR EXISTS (
+      SELECT 1
+      FROM public.projects
+      WHERE id = project_uuid
+        AND owner_id = auth.uid()
+    )
+    OR EXISTS (
+      SELECT 1
+      FROM public.project_members
+      WHERE project_id = project_uuid
+        AND user_id = auth.uid()
+        AND role = 'admin'
+    );
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public;
+
 -- Profiles: Users can read all profiles, but only update their own
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public profiles are viewable by everyone" ON profiles FOR SELECT USING (true);
 CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Global admins can update profiles" ON profiles FOR UPDATE USING (public.is_global_admin());
 
 -- Projects: Users can see projects they are members of
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view projects they belong to" ON projects FOR SELECT 
-  USING (EXISTS (SELECT 1 FROM project_members WHERE project_id = id AND user_id = auth.uid()));
+  USING (public.can_access_project(id));
 CREATE POLICY "Owners can update/delete projects" ON projects FOR ALL 
-  USING (owner_id = auth.uid());
+  USING (public.can_manage_project(id));
 CREATE POLICY "Authenticated users can create projects" ON projects FOR INSERT 
   WITH CHECK (auth.role() = 'authenticated');
 
 -- Project Members: Members can see other members of the same project
 ALTER TABLE project_members ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Project members can view fellow members" ON project_members FOR SELECT 
-  USING (EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = project_id AND pm.user_id = auth.uid()));
+  USING (public.can_access_project(project_id));
 CREATE POLICY "Project admins can manage members" ON project_members FOR ALL 
-  USING (EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = project_id AND pm.user_id = auth.uid() AND pm.role = 'admin') OR EXISTS (SELECT 1 FROM projects p WHERE p.id = project_id AND p.owner_id = auth.uid()));
+  USING (public.can_manage_project(project_id))
+  WITH CHECK (public.can_manage_project(project_id));
 
 -- Tasks: Project members can see and manage tasks
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Project members can view tasks" ON tasks FOR SELECT 
-  USING (EXISTS (SELECT 1 FROM project_members WHERE project_id = tasks.project_id AND user_id = auth.uid()));
-CREATE POLICY "Project members can manage tasks" ON tasks FOR ALL 
-  USING (EXISTS (SELECT 1 FROM project_members WHERE project_id = tasks.project_id AND user_id = auth.uid()));
+  USING (public.can_access_project(project_id));
+CREATE POLICY "Project admins can create tasks" ON tasks FOR INSERT 
+  WITH CHECK (public.can_manage_project(project_id));
+CREATE POLICY "Project admins or task owners can update tasks" ON tasks FOR UPDATE 
+  USING (public.can_manage_project(project_id) OR assigned_to = auth.uid())
+  WITH CHECK (public.can_manage_project(project_id) OR assigned_to = auth.uid());
+CREATE POLICY "Project admins can delete tasks" ON tasks FOR DELETE 
+  USING (public.can_manage_project(project_id));
+
+CREATE OR REPLACE FUNCTION public.enforce_task_update_permissions()
+RETURNS trigger AS $$
+BEGIN
+  IF public.can_manage_project(OLD.project_id) THEN
+    RETURN NEW;
+  END IF;
+
+  IF OLD.assigned_to IS DISTINCT FROM auth.uid() THEN
+    RAISE EXCEPTION 'Forbidden';
+  END IF;
+
+  IF NEW.project_id IS DISTINCT FROM OLD.project_id
+    OR NEW.title IS DISTINCT FROM OLD.title
+    OR NEW.description IS DISTINCT FROM OLD.description
+    OR NEW.priority IS DISTINCT FROM OLD.priority
+    OR NEW.assigned_to IS DISTINCT FROM OLD.assigned_to
+    OR NEW.due_date IS DISTINCT FROM OLD.due_date THEN
+    RAISE EXCEPTION 'Members can only update the status of their own tasks.';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+CREATE TRIGGER guard_task_updates
+  BEFORE UPDATE ON tasks
+  FOR EACH ROW EXECUTE PROCEDURE public.enforce_task_update_permissions();
 
 -- Functions and Triggers
 -- Automatically create profile on signup

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { getAuthContext } from '@/lib/rbac'
 
 export async function createProject(formData: FormData) {
   const supabase = await createClient()
@@ -44,4 +45,49 @@ export async function getProjects() {
 
   if (error) throw new Error(error.message)
   return data ?? []
+}
+
+export async function getManageableProjects() {
+  const { supabase, user, isAdmin } = await getAuthContext()
+
+  if (isAdmin) {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('id, name')
+      .order('created_at', { ascending: false })
+
+    if (error) throw new Error(error.message)
+    return data ?? []
+  }
+
+  const [ownedProjects, adminMemberships] = await Promise.all([
+    supabase
+      .from('projects')
+      .select('id, name')
+      .eq('owner_id', user.id)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('project_members')
+      .select('projects(id, name)')
+      .eq('user_id', user.id)
+      .eq('role', 'admin'),
+  ])
+
+  if (ownedProjects.error) throw new Error(ownedProjects.error.message)
+  if (adminMemberships.error) throw new Error(adminMemberships.error.message)
+
+  const projectsById = new Map<string, { id: string; name: string }>()
+
+  for (const project of ownedProjects.data ?? []) {
+    projectsById.set(project.id, { id: project.id, name: project.name })
+  }
+
+  for (const membership of adminMemberships.data ?? []) {
+    const project = membership.projects as unknown as { id: string; name: string } | null
+    if (project) {
+      projectsById.set(project.id, { id: project.id, name: project.name })
+    }
+  }
+
+  return Array.from(projectsById.values())
 }

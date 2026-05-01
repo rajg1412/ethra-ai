@@ -41,7 +41,7 @@ export function NewProjectModal({ children }: { children: React.ReactNode }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={children} />
+      <DialogTrigger render={children as React.ReactElement} />
       <DialogContent className="sm:max-w-md bg-white border border-slate-200 text-black shadow-xl">
         <form onSubmit={onSubmit}>
           <DialogHeader className="pb-4">

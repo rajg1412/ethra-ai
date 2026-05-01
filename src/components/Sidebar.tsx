@@ -84,10 +84,10 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3">Actions</p>
         </div>
         <NewProjectModal>
-          <div role="button" className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-slate-500 hover:bg-slate-100 hover:text-black transition-colors cursor-pointer">
+          <button className="flex items-center w-full gap-2.5 px-3 py-2 rounded-md text-sm text-slate-500 hover:bg-slate-100 hover:text-black transition-colors cursor-pointer text-left">
             <Plus className="w-4 h-4 shrink-0" />
             <span>New Project</span>
-          </div>
+          </button>
         </NewProjectModal>
       </nav>
 
