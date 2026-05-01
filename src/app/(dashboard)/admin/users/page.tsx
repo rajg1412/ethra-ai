@@ -14,6 +14,15 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { createClient } from '@/utils/supabase/server'
 
+type UserProfile = {
+  id: string
+  full_name: string | null
+  email: string | null
+  avatar_url: string | null
+  is_admin: boolean
+  updated_at: string
+}
+
 export default async function AdminUsersPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -33,7 +42,7 @@ export default async function AdminUsersPage() {
     .order('updated_at', { ascending: false })
 
   const total = users?.length ?? 0
-  const globalAdmins = users?.filter((u: any) => u.is_admin).length ?? 0
+  const globalAdmins = users?.filter((u: UserProfile) => u.is_admin).length ?? 0
 
   return (
     <div className="space-y-8">
@@ -102,7 +111,7 @@ export default async function AdminUsersPage() {
                     No users found.
                   </TableCell>
                 </TableRow>
-              ) : users.map((user: any) => (
+              ) : users.map((user: UserProfile) => (
                 <TableRow key={user.id} className="border-slate-100 hover:bg-slate-50 transition-colors">
                   <TableCell>
                     <div className="flex items-center gap-3">

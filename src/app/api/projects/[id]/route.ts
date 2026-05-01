@@ -1,6 +1,5 @@
 import { getProjectAccess } from '@/lib/rbac'
 import { jsonError, requireApiAuth } from '../../_utils'
-import { createClient } from '@/utils/supabase/server'
 import { z } from 'zod'
 import { validationErrorResponse } from '../../_utils'
 
@@ -69,7 +68,7 @@ export async function DELETE(
       return jsonError('Forbidden', 403)
     }
 
-    const supabase = await createClient()
+    const { supabase } = auth
     const { error } = await supabase.from('projects').delete().eq('id', id)
 
     if (error) throw error

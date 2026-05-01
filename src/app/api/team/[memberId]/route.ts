@@ -1,6 +1,5 @@
 import { removeMember, updateMemberRole } from '@/app/(dashboard)/team/actions'
 import { updateMemberRoleSchema } from '@/lib/schemas'
-import { requireProjectAdminContext } from '@/lib/rbac'
 import { jsonError, parseJsonBody, requireApiAuth, toFormData, validationErrorResponse } from '../../_utils'
 import { z } from 'zod'
 
@@ -22,7 +21,6 @@ export async function PATCH(
   if ('error' in parsed) return parsed.error
 
   try {
-    await requireProjectAdminContext(parsed.data.projectId)
     const result = await updateMemberRole(
       toFormData({
         memberId,
@@ -67,7 +65,6 @@ export async function DELETE(
   if (!projectIdCheck.success) return validationErrorResponse(projectIdCheck.error)
 
   try {
-    await requireProjectAdminContext(projectId)
     const result = await removeMember(
       toFormData({
         memberId,

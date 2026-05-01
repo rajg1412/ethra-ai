@@ -1,5 +1,5 @@
 import { inviteMember } from '@/app/(dashboard)/team/actions'
-import { getProjectAccess, requireProjectAdminContext } from '@/lib/rbac'
+import { getProjectAccess } from '@/lib/rbac'
 import { inviteMemberSchema } from '@/lib/schemas'
 import {
   jsonError,
@@ -44,14 +44,13 @@ export async function GET(request: Request) {
       .from('project_members')
       .select('id, user_id, role, project_id, profiles(full_name, email), projects(name, owner_id)')
       .eq('project_id', projectId)
-      .order('created_at', { ascending: false })
 
     if (error) throw error
 
     const rows = (data ?? []).map((row) => ({
       ...row,
-      profiles: row.profiles?.[0] ?? null,
-      projects: row.projects?.[0] ?? null,
+      profiles: row.profiles as unknown as { full_name: string | null; email: string | null } | null,
+      projects: row.projects as unknown as { name: string | null; owner_id: string | null } | null,
     }))
 
     return Response.json({ data: rows as MemberRow[] })
@@ -70,7 +69,6 @@ export async function POST(request: Request) {
   if ('error' in parsed) return parsed.error
 
   try {
-    await requireProjectAdminContext(parsed.data.projectId)
     const result = await inviteMember(
       toFormData({
         email: parsed.data.email,

@@ -17,34 +17,29 @@ export async function getDashboardStats() {
     supabase.from('tasks').select('*', { count: 'exact', head: true }),
     supabase.from('tasks').select('*', { count: 'exact', head: true }).neq('status', 'completed'),
     supabase.from('tasks').select('*', { count: 'exact', head: true }).lt('due_date', new Date().toISOString()).neq('status', 'completed'),
-    supabase.from('tasks').select('*, projects(name)').order('created_at', { ascending: false }).limit(4),
+    supabase.from('tasks').select('id, title, status, due_date, projects(name)').order('created_at', { ascending: false }).limit(4),
     supabase.from('projects').select('*, project_members(count)').limit(4),
   ])
 
-  const projectsWithCompletion = await Promise.all(
-    (activeProjects || []).map(async (project) => {
-      const [completedResult, totalResult] = await Promise.all([
-        supabase
-          .from('tasks')
-          .select('*', { count: 'exact', head: true })
-          .eq('project_id', project.id)
-          .eq('status', 'completed'),
-        supabase
-          .from('tasks')
-          .select('*', { count: 'exact', head: true })
-          .eq('project_id', project.id),
-      ])
+  const projectIds = (activeProjects ?? []).map((p) => p.id)
 
-      const completedCount = completedResult.count ?? 0
-      const totalCount = totalResult.count ?? 0
-      const completionPct = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100)
+  const taskRows =
+    projectIds.length > 0
+      ? await supabase
+          .from('tasks')
+          .select('project_id, status')
+          .in('project_id', projectIds)
+          .then(({ data }) => data ?? [])
+      : []
 
-      return {
-        ...project,
-        completionPct,
-      }
-    })
-  )
+  const projectsWithCompletion = (activeProjects ?? []).map((project) => {
+    const projectTasks = taskRows.filter((t) => t.project_id === project.id)
+    const total = projectTasks.length
+    const completed = projectTasks.filter((t) => t.status === 'completed').length
+    const completionPct = total === 0 ? 0 : Math.round((completed / total) * 100)
+
+    return { ...project, completionPct }
+  })
 
   return {
     stats: [
@@ -53,7 +48,7 @@ export async function getDashboardStats() {
       { label: 'Pending', value: String(pendingCount || 0), icon: 'Clock' },
       { label: 'Overdue', value: String(overdueCount || 0), icon: 'AlertCircle' },
     ],
-    recentTasks: recentTasks || [],
+    recentTasks: recentTasks ?? [],
     activeProjects: projectsWithCompletion,
   }
 }

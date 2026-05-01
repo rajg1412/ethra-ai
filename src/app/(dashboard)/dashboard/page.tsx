@@ -19,7 +19,7 @@ type Task = {
   title: string
   status: 'todo' | 'in_progress' | 'completed'
   due_date: string | null
-  projects: { name: string } | null
+  projects: { name: string }[] | null
 }
 
 type Project = {
@@ -86,8 +86,8 @@ export default async function DashboardPage() {
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-slate-800 truncate group-hover:text-black">{task.title}</p>
-                  {task.projects?.name && (
-                    <p className="text-xs text-slate-400 mt-0.5">{task.projects.name}</p>
+                  {task.projects?.[0]?.name && (
+                    <p className="text-xs text-slate-400 mt-0.5">{task.projects[0].name}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-3 ml-4 shrink-0">
