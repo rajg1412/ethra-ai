@@ -62,7 +62,7 @@ export default async function ProjectsPage() {
                 <div className="flex items-center gap-4 mt-4">
                   <div className="flex items-center gap-1.5 text-xs text-slate-400">
                     <Users className="w-3.5 h-3.5" />
-                    <span>{project.project_members?.length ?? 0} members</span>
+                    <span>{project.project_members?.[0]?.count ?? 0} members</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-slate-400">
                     <Calendar className="w-3.5 h-3.5" />

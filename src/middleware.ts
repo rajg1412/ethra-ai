@@ -8,12 +8,16 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
+     * Only run auth refresh on routes that actually need it.
+     * This avoids paying the Supabase `getUser()` cost on public or asset requests.
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/login',
+    '/signup',
+    '/dashboard/:path*',
+    '/projects/:path*',
+    '/tasks/:path*',
+    '/team/:path*',
+    '/settings/:path*',
+    '/admin/:path*',
   ],
 }

@@ -15,8 +15,7 @@ import type { TaskListItem } from '@/types/task.types'
 import { createProjectSchema } from '@/lib/schemas'
 import { z } from 'zod'
 
-const projectSummarySelect =
-  'id, name, description, created_at, owner_id, project_members(count)'
+const projectSummarySelect = 'id, name, description, created_at, owner_id'
 
 const projectDetailSelect = 'id, name, description, created_at, owner_id'
 
@@ -32,13 +31,33 @@ function assertUuid(value: string, message = 'Invalid project id.') {
 export async function getProjects(): Promise<ProjectSummary[]> {
   const { supabase } = await getAuthContext()
 
-  const { data, error } = await supabase
-    .from('projects')
-    .select(projectSummarySelect)
-    .order('created_at', { ascending: false })
+  const [{ data: projects, error: projectsError }, { data: memberships, error: membershipsError }] =
+    await Promise.all([
+      supabase
+        .from('projects')
+        .select(projectSummarySelect)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('project_members')
+        .select('project_id')
+    ])
 
-  if (error) throw new Error(error.message)
-  return (data ?? []) as ProjectSummary[]
+  if (projectsError) throw new Error(projectsError.message)
+  if (membershipsError) throw new Error(membershipsError.message)
+
+  const memberCounts = new Map<string, number>()
+
+  for (const membership of memberships ?? []) {
+    memberCounts.set(
+      membership.project_id,
+      (memberCounts.get(membership.project_id) ?? 0) + 1
+    )
+  }
+
+  return (projects ?? []).map((project) => ({
+    ...project,
+    project_members: [{ count: memberCounts.get(project.id) ?? 0 }],
+  })) as ProjectSummary[]
 }
 
 export async function getManageableProjects(): Promise<ManageableProject[]> {
