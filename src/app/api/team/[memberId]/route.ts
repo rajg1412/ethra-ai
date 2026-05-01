@@ -1,7 +1,7 @@
-import { removeMember, updateMemberRole } from '@/app/(dashboard)/team/actions'
 import { updateMemberRoleSchema } from '@/lib/schemas'
-import { jsonError, parseJsonBody, requireApiAuth, toFormData, validationErrorResponse } from '../../_utils'
+import { jsonError, parseJsonBody, validationErrorResponse } from '../../_utils'
 import { z } from 'zod'
+import { removeMember, updateMemberRole } from '@/lib/services/team.service'
 
 type Params = {
   params: Promise<{ memberId: string }>
@@ -11,9 +11,6 @@ export async function PATCH(
   request: Request,
   context: Params
 ) {
-  const auth = await requireApiAuth()
-  if ('error' in auth) return auth.error
-
   const { memberId } = await context.params
   const memberIdCheck = z.string().uuid().safeParse(memberId)
   if (!memberIdCheck.success) return validationErrorResponse(memberIdCheck.error)
@@ -21,13 +18,11 @@ export async function PATCH(
   if ('error' in parsed) return parsed.error
 
   try {
-    const result = await updateMemberRole(
-      toFormData({
-        memberId,
-        projectId: parsed.data.projectId,
-        role: parsed.data.role,
-      })
-    )
+    const result = await updateMemberRole({
+      memberId,
+      projectId: parsed.data.projectId,
+      role: parsed.data.role,
+    })
 
     return Response.json({ data: result })
   } catch (error) {
@@ -49,9 +44,6 @@ export async function DELETE(
   request: Request,
   context: Params
 ) {
-  const auth = await requireApiAuth()
-  if ('error' in auth) return auth.error
-
   const { memberId } = await context.params
   const memberIdCheck = z.string().uuid().safeParse(memberId)
   if (!memberIdCheck.success) return validationErrorResponse(memberIdCheck.error)
@@ -65,12 +57,10 @@ export async function DELETE(
   if (!projectIdCheck.success) return validationErrorResponse(projectIdCheck.error)
 
   try {
-    const result = await removeMember(
-      toFormData({
-        memberId,
-        projectId,
-      })
-    )
+    const result = await removeMember({
+      memberId,
+      projectId,
+    })
 
     return Response.json({ data: result })
   } catch (error) {

@@ -3,7 +3,7 @@ import { Plus, CheckCircle2, Clock, AlertCircle, BarChart3 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { NewProjectModal } from '@/components/NewProjectModal'
-import { getDashboardStats } from './actions'
+import { getDashboardStats } from '@/lib/services/dashboard.service'
 import Link from 'next/link'
 
 const iconMap: Record<string, React.ElementType> = { BarChart3, CheckCircle2, Clock, AlertCircle }
@@ -12,21 +12,6 @@ const statusStyle: Record<string, string> = {
   todo: 'bg-slate-100 text-slate-600',
   in_progress: 'bg-slate-900 text-white',
   completed: 'bg-black text-white',
-}
-
-type Task = {
-  id: string
-  title: string
-  status: 'todo' | 'in_progress' | 'completed'
-  due_date: string | null
-  projects: { name: string }[] | null
-}
-
-type Project = {
-  id: string
-  name: string
-  project_members: { count: number }[]
-  completionPct: number
 }
 
 export default async function DashboardPage() {
@@ -79,7 +64,7 @@ export default async function DashboardPage() {
           <CardContent className="p-0">
             {recentTasks.length === 0 ? (
               <p className="text-center py-10 text-sm text-slate-400">No tasks yet.</p>
-            ) : recentTasks.map((task: Task) => (
+            ) : recentTasks.map((task) => (
               <div
                 key={task.id}
                 className="flex items-center justify-between px-5 py-3.5 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors group"
@@ -110,7 +95,7 @@ export default async function DashboardPage() {
           <CardContent className="p-5 space-y-4">
             {activeProjects.length === 0 ? (
               <p className="text-center py-6 text-sm text-slate-400">No projects.</p>
-            ) : activeProjects.map((project: Project) => (
+            ) : activeProjects.map((project) => (
               <div key={project.id} className="space-y-1.5">
                 <div className="flex justify-between items-center text-sm">
                   <span className="font-medium text-slate-700 truncate">{project.name}</span>

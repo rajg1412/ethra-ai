@@ -3,6 +3,8 @@ import 'server-only'
 import { cache } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import type { User } from '@supabase/supabase-js'
+import type { ProjectAccess, ProjectRole } from '@/types/project.types'
+import type { TaskRecord, TaskStatus } from '@/types/task.types'
 
 type Profile = {
   id: string
@@ -11,9 +13,6 @@ type Profile = {
   avatar_url: string | null
   is_admin: boolean
 }
-
-export type ProjectRole = 'admin' | 'member'
-export type TaskStatus = 'todo' | 'in_progress' | 'completed'
 
 const STATUS_MAP: Record<string, TaskStatus> = {
   todo: 'todo',
@@ -28,28 +27,6 @@ export type AuthContext = {
   user: User
   profile: Profile | null
   isAdmin: boolean
-}
-
-type ProjectRecord = {
-  id: string
-  name: string
-  description: string | null
-  created_at: string
-  owner_id: string | null
-}
-
-type ProjectAccess = {
-  project: ProjectRecord
-  membershipRole: ProjectRole | null
-  isOwner: boolean
-  canViewProject: boolean
-  canManageProject: boolean
-}
-
-type TaskRecord = {
-  id: string
-  project_id: string
-  assigned_to: string | null
 }
 
 export const getAuthContext = cache(async (): Promise<AuthContext> => {

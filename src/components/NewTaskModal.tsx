@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { createTask } from '@/app/(dashboard)/tasks/actions'
+import { createTask } from '@/actions/tasks'
 import { toast } from 'sonner'
 
 interface Project { id: string; name: string }

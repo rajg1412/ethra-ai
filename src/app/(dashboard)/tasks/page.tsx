@@ -1,16 +1,11 @@
 import React from 'react'
 import { Plus, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { getTasks } from './actions'
-import { getManageableProjects } from '@/app/(dashboard)/projects/actions'
 import { getAuthContext } from '@/lib/rbac'
 import { KanbanBoard } from '@/components/KanbanBoard'
 import { NewTaskModal } from '@/components/NewTaskModal'
-
-type ManageableProject = {
-  id: string
-  name: string
-}
+import { getTasks } from '@/lib/services/task.service'
+import { getManageableProjects } from '@/lib/services/project.service'
 
 export default async function TasksPage() {
   const { user, isAdmin } = await getAuthContext()
@@ -19,7 +14,7 @@ export default async function TasksPage() {
     getManageableProjects(),
   ])
 
-  const projectOptions = manageableProjects.map((project: ManageableProject) => ({
+  const projectOptions = manageableProjects.map((project) => ({
     id: project.id,
     name: project.name,
   }))

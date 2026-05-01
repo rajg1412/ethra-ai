@@ -5,16 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { NewProjectModal } from '@/components/NewProjectModal'
-import { getProjects } from './actions'
-
-type ProjectWithMembers = {
-  id: string
-  name: string
-  description: string | null
-  created_at: string
-  owner_id: string | null
-  project_members: { count: number }[]
-}
+import { getProjects } from '@/lib/services/project.service'
 
 export default async function ProjectsPage() {
   const projects = await getProjects()
@@ -46,7 +37,7 @@ export default async function ProjectsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {projects.map((project: ProjectWithMembers) => (
+          {projects.map((project) => (
             <Card
               key={project.id}
               className="bg-white border-slate-200 hover:border-black transition-colors group shadow-none"

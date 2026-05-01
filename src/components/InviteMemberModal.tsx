@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select'
-import { inviteMember } from '@/app/(dashboard)/team/actions'
+import { inviteMember } from '@/actions/team'
 import { toast } from 'sonner'
 
 interface Project { id: string; name: string }

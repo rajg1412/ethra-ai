@@ -1,26 +1,14 @@
 import React from 'react'
-import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/Sidebar'
 import { Navbar } from '@/components/Navbar'
-import { createClient } from '@/utils/supabase/server'
+import { getAuthContext } from '@/lib/rbac'
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, email, avatar_url, is_admin')
-    .eq('id', user.id)
-    .single()
-
-  const isAdmin = profile?.is_admin ?? false
+  const { user, profile, isAdmin } = await getAuthContext()
   const fullName = profile?.full_name ?? user.email ?? 'User'
   const email = profile?.email ?? user.email ?? ''
 

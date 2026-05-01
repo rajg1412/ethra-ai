@@ -11,38 +11,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { createClient } from '@/utils/supabase/server'
 import { InviteMemberModal } from '@/components/InviteMemberModal'
-import { getManageableProjects } from '@/app/(dashboard)/projects/actions'
 import { getAuthContext } from '@/lib/rbac'
 import { TeamMemberActions } from '@/components/TeamMemberActions'
-
-type TeamMemberRow = {
-  id: string
-  user_id: string
-  role: 'admin' | 'member'
-  project_id: string
-  profiles?: { full_name?: string | null; email?: string | null } | null
-  projects?: { name?: string | null; owner_id?: string | null } | null
-}
-
-type ManageableProject = {
-  id: string
-  name: string
-}
+import { getManageableProjects } from '@/lib/services/project.service'
+import { getTeamMembers } from '@/lib/services/team.service'
 
 export default async function TeamPage() {
-  const supabase = await createClient()
   const { user } = await getAuthContext()
-
-  const { data: members } = await supabase
-    .from('project_members')
-    .select('*, profiles(full_name, email), projects(name, owner_id)')
-
   const projects = await getManageableProjects()
-  const manageableProjectIds = new Set(projects.map((project: ManageableProject) => project.id))
-
-  const typedMembers = (members ?? []) as TeamMemberRow[]
+  const members = await getTeamMembers()
+  const manageableProjectIds = new Set(projects.map((project) => project.id))
+  const typedMembers = members
   const total = typedMembers.length
   const admins = typedMembers.filter((member) => member.role === 'admin').length
 
@@ -56,7 +36,7 @@ export default async function TeamPage() {
           </p>
         </div>
         {projects.length > 0 && (
-          <InviteMemberModal projects={projects.map((project: ManageableProject) => ({ id: project.id, name: project.name }))}>
+          <InviteMemberModal projects={projects.map((project) => ({ id: project.id, name: project.name }))}>
             <button className="inline-flex items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md gap-2 cursor-pointer transition-colors">
               <UserPlus className="w-4 h-4" />
               Invite Member

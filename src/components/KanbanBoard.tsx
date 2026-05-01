@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { deleteTask, updateTaskStatus } from '@/app/(dashboard)/tasks/actions'
+import { deleteTask, updateTaskStatus } from '@/actions/tasks'
 import { NewTaskModal } from '@/components/NewTaskModal'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -23,7 +23,7 @@ interface Task {
   title: string
   description?: string | null
   due_date?: string | null
-  profiles?: { full_name?: string | null; avatar_url?: string | null }
+  profiles?: { full_name?: string | null; avatar_url?: string | null } | null
 }
 
 const columns = [

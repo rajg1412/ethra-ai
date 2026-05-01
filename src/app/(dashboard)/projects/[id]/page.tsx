@@ -1,41 +1,33 @@
 import React from 'react'
 import { notFound } from 'next/navigation'
-import { createClient } from '@/utils/supabase/server'
 import { KanbanBoard } from '@/components/KanbanBoard'
 import { Badge } from '@/components/ui/badge'
 import { Users, Calendar, Folder, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { getProjectAccess } from '@/lib/rbac'
+import { getAuthContext } from '@/lib/rbac'
+import { getProjectDetails } from '@/lib/services/project.service'
 
-export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
-  const supabase = await createClient()
-  const { id } = await params
-  const { data: { user } } = await supabase.auth.getUser()
-  let projectAccess
+type ProjectDetailContentProps = {
+  userId: string
+  projectId: string
+  projectName: string
+  projectDescription: string | null
+  projectCreatedAt: string
+  memberCount: number
+  tasks: Awaited<ReturnType<typeof getProjectDetails>>['tasks']
+  canCreateTask: boolean
+}
 
-  try {
-    projectAccess = await getProjectAccess(id)
-  } catch {
-    return notFound()
-  }
-
-  if (!projectAccess.canViewProject) {
-    return notFound()
-  }
-
-  const { count: memberCount } = await supabase
-    .from('project_members')
-    .select('id', { count: 'exact', head: true })
-    .eq('project_id', id)
-
-  const { data: tasks } = await supabase
-    .from('tasks')
-    .select('*, profiles(full_name, avatar_url)')
-    .eq('project_id', id)
-    .order('created_at', { ascending: false })
-
-  const canCreateTask = projectAccess.canManageProject
-
+function ProjectDetailContent({
+  userId,
+  projectId,
+  projectName,
+  projectDescription,
+  projectCreatedAt,
+  memberCount,
+  tasks,
+  canCreateTask,
+}: ProjectDetailContentProps) {
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4">
@@ -53,9 +45,9 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
               <Folder className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-black tracking-tight">{projectAccess.project.name}</h1>
+              <h1 className="text-3xl font-bold text-black tracking-tight">{projectName}</h1>
               <p className="text-slate-500 mt-1 max-w-2xl">
-                {projectAccess.project.description || 'No description provided.'}
+                {projectDescription || 'No description provided.'}
               </p>
 
               <div className="flex flex-wrap items-center gap-4 mt-4">
@@ -65,7 +57,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-slate-400">
                   <Calendar className="w-4 h-4" />
-                  <span>Created {new Date(projectAccess.project.created_at).toLocaleDateString()}</span>
+                  <span>Created {new Date(projectCreatedAt).toLocaleDateString()}</span>
                 </div>
                 <Badge variant="outline" className="text-[10px] font-bold border-slate-200 text-slate-500 uppercase">
                   Active
@@ -93,13 +85,58 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
           <h2 className="text-lg font-bold text-black">Task Board</h2>
         </div>
         <KanbanBoard
-          currentUserId={user?.id ?? ''}
+          currentUserId={userId}
           initialTasks={tasks || []}
-          projects={canCreateTask ? [{ id, name: projectAccess.project.name }] : []}
-          manageableProjectIds={canCreateTask ? [id] : []}
+          projects={canCreateTask ? [{ id: projectId, name: projectName }] : []}
+          manageableProjectIds={canCreateTask ? [projectId] : []}
           canCreateTask={canCreateTask}
         />
       </div>
     </div>
   )
+}
+
+export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
+  const { id } = await params
+
+  let data:
+    | {
+        userId: string
+        projectId: string
+        projectName: string
+        projectDescription: string | null
+        projectCreatedAt: string
+        memberCount: number
+        tasks: Awaited<ReturnType<typeof getProjectDetails>>['tasks']
+        canCreateTask: boolean
+      }
+    | undefined
+
+  try {
+    const { user } = await getAuthContext()
+    const { projectAccess, memberCount, tasks } = await getProjectDetails(id)
+
+    if (!projectAccess.canViewProject) {
+      return notFound()
+    }
+
+    data = {
+      userId: user?.id ?? '',
+      projectId: id,
+      projectName: projectAccess.project.name,
+      projectDescription: projectAccess.project.description,
+      projectCreatedAt: projectAccess.project.created_at,
+      memberCount,
+      tasks,
+      canCreateTask: projectAccess.canManageProject,
+    }
+  } catch {
+    return notFound()
+  }
+
+  if (!data) {
+    return notFound()
+  }
+
+  return <ProjectDetailContent {...data} />
 }

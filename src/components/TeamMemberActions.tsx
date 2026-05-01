@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { updateMemberRole, removeMember } from '@/app/(dashboard)/team/actions'
+import { updateMemberRole, removeMember } from '@/actions/team'
 import { toast } from 'sonner'
 
 type Props = {
