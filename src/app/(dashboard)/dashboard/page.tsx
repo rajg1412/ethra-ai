@@ -19,13 +19,13 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-black tracking-tight">Dashboard</h1>
           <p className="text-sm text-slate-500 mt-1">Welcome back. Current status below.</p>
         </div>
         <NewProjectModal>
-          <button className="inline-flex items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md gap-2 cursor-pointer transition-colors">
+          <button className="inline-flex w-full sm:w-auto items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md gap-2 cursor-pointer transition-colors">
             <Plus className="w-4 h-4" />
             New Project
           </button>
@@ -37,7 +37,7 @@ export default async function DashboardPage() {
           const Icon = iconMap[stat.icon]
           return (
             <Card key={stat.label} className="bg-white border-slate-200 shadow-none hover:border-black transition-colors">
-              <CardContent className="p-5">
+              <CardContent className="p-4 sm:p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center">
                     {Icon && <Icon className="w-4.5 h-4.5 text-slate-600" />}
@@ -53,10 +53,14 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 bg-white border-slate-200 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
             <CardTitle className="text-base font-bold text-black">Recent Tasks</CardTitle>
             <Link href="/tasks">
-              <Button variant="ghost" size="sm" className="text-xs text-slate-500 hover:text-black hover:bg-slate-100 h-7">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-slate-500 hover:bg-slate-100 hover:text-black"
+              >
                 View all
               </Button>
             </Link>
@@ -92,25 +96,30 @@ export default async function DashboardPage() {
           <CardHeader className="border-b border-slate-100 pb-4">
             <CardTitle className="text-base font-bold text-black">Active Projects</CardTitle>
           </CardHeader>
-          <CardContent className="p-5 space-y-4">
+          <CardContent className="p-4 sm:p-5 space-y-4">
             {activeProjects.length === 0 ? (
               <p className="text-center py-6 text-sm text-slate-400">No projects.</p>
-            ) : activeProjects.map((project) => (
-              <div key={project.id} className="space-y-1.5">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="font-medium text-slate-700 truncate">{project.name}</span>
-                  <span className="text-slate-400 text-xs ml-2">{project.completionPct}%</span>
+            ) : (
+              activeProjects.map((project) => (
+                <div key={project.id} className="space-y-1.5">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium text-slate-700 truncate">{project.name}</span>
+                    <span className="text-slate-400 text-xs ml-2">{project.completionPct}%</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-black"
+                      style={{ width: `${project.completionPct}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-black rounded-full" style={{ width: `${project.completionPct}%` }} />
-                </div>
-              </div>
-            ))}
+              ))
+            )}
             <Link href="/projects">
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full mt-2 border-slate-200 text-slate-600 hover:bg-black hover:text-white hover:border-black text-xs transition-all"
+                className="mt-2 w-full border-slate-200 text-xs text-slate-600 transition-all hover:border-black hover:bg-black hover:text-white"
               >
                 All Projects
               </Button>

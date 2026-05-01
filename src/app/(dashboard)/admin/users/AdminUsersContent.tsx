@@ -49,14 +49,14 @@ export default function AdminUsersContent({ users }: AdminUsersContentProps) {
           </div>
           <p className="text-sm text-slate-500">Manage global user access and permissions.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex w-full sm:w-auto items-center gap-3">
+          <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <Input
               placeholder="Search users…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-8 pl-9 text-sm bg-white border-slate-200 text-black placeholder:text-slate-400 focus-visible:ring-black w-52"
+              className="h-8 w-full pl-9 text-sm bg-white border-slate-200 text-black placeholder:text-slate-400 focus-visible:ring-black sm:w-52"
             />
           </div>
         </div>
@@ -81,7 +81,7 @@ export default function AdminUsersContent({ users }: AdminUsersContentProps) {
       </div>
 
       <Card className="bg-white border-slate-200 shadow-none overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <CardTitle className="text-base font-bold text-black flex items-center gap-2">
             <Users className="w-4 h-4 text-slate-500" />
             All Users
@@ -95,7 +95,8 @@ export default function AdminUsersContent({ users }: AdminUsersContentProps) {
           </Button>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="min-w-[40rem]">
             <TableHeader>
               <TableRow className="bg-slate-50 border-slate-100 hover:bg-slate-50">
                 <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
@@ -182,6 +183,7 @@ export default function AdminUsersContent({ users }: AdminUsersContentProps) {
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

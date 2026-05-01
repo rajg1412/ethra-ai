@@ -12,13 +12,13 @@ export default async function ProjectsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-black tracking-tight">Projects</h1>
           <p className="text-sm text-slate-500 mt-1">All your team workspaces in one place.</p>
         </div>
         <NewProjectModal>
-          <button className="inline-flex items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md gap-2 cursor-pointer transition-colors">
+          <button className="inline-flex w-full sm:w-auto items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md gap-2 cursor-pointer transition-colors">
             <Plus className="w-4 h-4" />
             New Project
           </button>
@@ -26,7 +26,7 @@ export default async function ProjectsPage() {
       </div>
 
       {projects.length === 0 ? (
-        <div className="border border-dashed border-slate-200 rounded-xl p-16 text-center">
+        <div className="border border-dashed border-slate-200 rounded-xl p-8 sm:p-16 text-center">
           <Folder className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-500 text-sm">No projects yet.</p>
           <NewProjectModal>
@@ -36,7 +36,7 @@ export default async function ProjectsPage() {
           </NewProjectModal>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {projects.map((project) => (
             <Card
               key={project.id}

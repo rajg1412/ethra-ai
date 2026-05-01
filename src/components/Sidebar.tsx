@@ -17,18 +17,46 @@ import { cn } from '@/lib/utils'
 import { logout } from '@/app/(auth)/actions'
 import { NewProjectModal } from '@/components/NewProjectModal'
 
-const navItems = [
+export const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: FolderKanban,    label: 'Projects',  href: '/projects'  },
   { icon: CheckSquare,     label: 'Tasks',     href: '/tasks'     },
   { icon: Users,           label: 'Team',      href: '/team'      },
 ]
 
+export function SidebarLink({
+  href,
+  icon: Icon,
+  label,
+  active,
+}: {
+  href: string
+  icon: React.ElementType
+  label: string
+  active: boolean
+}) {
+  return (
+    <Link href={href}>
+      <div
+        className={cn(
+          'relative flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors',
+          active
+            ? 'bg-black text-white font-semibold'
+            : 'text-slate-500 hover:bg-slate-100 hover:text-black'
+        )}
+      >
+        <Icon className="w-4 h-4 shrink-0" />
+        <span>{label}</span>
+      </div>
+    </Link>
+  )
+}
+
 export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname()
 
   return (
-    <aside className="w-52 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0">
+    <aside className="hidden md:flex w-52 bg-white border-r border-slate-200 flex-col h-screen sticky top-0">
       {/* Logo */}
       <div className="px-5 py-6">
         <Link href="/dashboard" className="flex items-center gap-2.5">
@@ -45,19 +73,7 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
 
         {navItems.map((item) => {
           const isActive = pathname === item.href
-          return (
-            <Link key={item.href} href={item.href}>
-              <div className={cn(
-                'relative flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors',
-                isActive
-                  ? 'bg-black text-white font-semibold'
-                  : 'text-slate-500 hover:bg-slate-100 hover:text-black'
-              )}>
-                <item.icon className="w-4 h-4 shrink-0" />
-                <span>{item.label}</span>
-              </div>
-            </Link>
-          )
+          return <SidebarLink key={item.href} href={item.href} icon={item.icon} label={item.label} active={isActive} />
         })}
 
         {isAdmin && (
@@ -65,17 +81,12 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
             <div className="pt-4 pb-1">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3">Admin</p>
             </div>
-            <Link href="/admin/users">
-              <div className={cn(
-                'relative flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors',
-                pathname.startsWith('/admin')
-                  ? 'bg-black text-white font-semibold'
-                  : 'text-slate-500 hover:bg-slate-100 hover:text-black'
-              )}>
-                <ShieldAlert className="w-4 h-4 shrink-0" />
-                <span>Users</span>
-              </div>
-            </Link>
+            <SidebarLink
+              href="/admin/users"
+              icon={ShieldAlert}
+              label="Users"
+              active={pathname.startsWith('/admin')}
+            />
           </>
         )}
 

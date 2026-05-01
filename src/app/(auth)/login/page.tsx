@@ -71,12 +71,6 @@ function LoginContent() {
                   <Label htmlFor="password" className="text-slate-700 text-sm font-medium">
                     Password
                   </Label>
-                  <Link
-                    href="#"
-                    className="text-xs text-slate-500 hover:text-black transition-colors underline decoration-slate-200 underline-offset-4"
-                  >
-                    Forgot password?
-                  </Link>
                 </div>
                 <div className="relative">
                   <Input

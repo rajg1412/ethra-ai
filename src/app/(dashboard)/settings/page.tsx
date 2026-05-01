@@ -20,7 +20,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-8 max-w-3xl">
-      <div className="flex items-center gap-3">
+      <div className="flex items-start gap-3">
         <Settings className="w-6 h-6 text-black" />
         <div>
           <h1 className="text-2xl font-bold text-black tracking-tight">Settings</h1>
@@ -37,7 +37,7 @@ export default async function SettingsPage() {
           <CardDescription className="text-slate-500 text-sm">Update your personal information.</CardDescription>
         </CardHeader>
         <CardContent className="pt-6 space-y-6">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <Avatar className="h-16 w-16 border-2 border-slate-200">
               <AvatarFallback className="text-xl bg-slate-900 text-white font-bold">
                 {initials}
@@ -76,7 +76,7 @@ export default async function SettingsPage() {
                 />
               </div>
             </div>
-            <Button type="submit" className="bg-black hover:bg-slate-800 text-white">
+            <Button type="submit" className="bg-black hover:bg-slate-800 text-white w-full sm:w-auto">
               Save Changes
             </Button>
           </form>

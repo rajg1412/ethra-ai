@@ -39,13 +39,13 @@ function ProjectDetailContent({
           Back to Projects
         </Link>
 
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center text-white shrink-0">
               <Folder className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-black tracking-tight">{projectName}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-black tracking-tight break-words">{projectName}</h1>
               <p className="text-slate-500 mt-1 max-w-2xl">
                 {projectDescription || 'No description provided.'}
               </p>
@@ -67,10 +67,10 @@ function ProjectDetailContent({
           </div>
 
           {canCreateTask && (
-            <div className="flex items-center gap-2">
+            <div className="flex w-full sm:w-auto items-center gap-2">
               <Link
                 href="/team"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
               >
                 <Users className="w-4 h-4" />
                 Manage Team

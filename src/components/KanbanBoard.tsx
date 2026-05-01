@@ -89,15 +89,15 @@ export function KanbanBoard({
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <div className="flex gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-3 lg:gap-5 lg:overflow-visible">
       {columns.map((col) => {
         const colTasks = tasks.filter(t => t.status === col.id)
         return (
-          <div key={col.id} className="flex flex-col gap-3">
+          <div key={col.id} className="min-w-[18rem] flex-1 flex flex-col gap-3 lg:min-w-0">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2">
                 <div className={cn('w-2 h-2 rounded-full', col.dot)} />
-                <span className="text-xs font-semibold text-slate-700 uppercase tracking-widest">
+                <span className="text-[11px] font-semibold text-slate-700 uppercase tracking-widest">
                   {col.title}
                 </span>
                 <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">

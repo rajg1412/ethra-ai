@@ -28,7 +28,7 @@ export default async function TeamPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-black tracking-tight">Team</h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -37,7 +37,7 @@ export default async function TeamPage() {
         </div>
         {projects.length > 0 && (
           <InviteMemberModal projects={projects.map((project) => ({ id: project.id, name: project.name }))}>
-            <button className="inline-flex items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md gap-2 cursor-pointer transition-colors">
+            <button className="inline-flex items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md gap-2 cursor-pointer transition-colors w-full sm:w-auto">
               <UserPlus className="w-4 h-4" />
               Invite Member
             </button>
@@ -52,7 +52,8 @@ export default async function TeamPage() {
               <CardTitle className="text-base font-bold text-black">Members ({total})</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
+              <div className="overflow-x-auto">
+              <Table className="min-w-[44rem]">
                 <TableHeader>
                   <TableRow className="bg-slate-50 border-slate-100 hover:bg-slate-50">
                     <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Member</TableHead>
@@ -116,6 +117,7 @@ export default async function TeamPage() {
                   })}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         </div>
