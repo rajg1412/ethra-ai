@@ -4,13 +4,19 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import {
   normalizeTaskStatus,
+  requireAuthContext,
   requireProjectAdminContext,
   requireTaskAdminContext,
   requireTaskEditorContext,
 } from '@/lib/rbac'
+import {
+  createTaskSchema,
+  getSchemaErrorMessage,
+  normalizeSchemaInput,
+} from '@/lib/schemas'
 
 export async function getTasks(projectId?: string) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuthContext()
 
   let query = supabase
     .from('tasks')
@@ -42,31 +48,25 @@ export async function updateTaskStatus(taskId: string, status: string) {
 export async function createTask(formData: FormData) {
   const supabase = await createClient()
 
-  const title       = formData.get('title') as string
-  const description = formData.get('description') as string
-  const projectId   = formData.get('projectId') as string
-  const priority    = formData.get('priority') as string
-  const assignedTo  = formData.get('assignedTo') as string
-  const dueDate     = formData.get('dueDate') as string
+  const result = createTaskSchema.safeParse(
+    normalizeSchemaInput(Object.fromEntries(formData))
+  )
 
-  if (!title?.trim()) throw new Error('Title is required.')
-  if (!projectId?.trim()) throw new Error('Please select a project.')
+  if (!result.success) {
+    throw new Error(getSchemaErrorMessage(result.error))
+  }
 
-  const projectAccess = await requireProjectAdminContext(projectId)
+  const projectAccess = await requireProjectAdminContext(result.data.projectId)
   if (!projectAccess.canManageProject) {
     throw new Error('Forbidden')
   }
 
-  const normalizedPriority = ['low', 'medium', 'high'].includes(priority)
-    ? priority
-    : 'medium'
-
-  if (assignedTo) {
+  if (result.data.assignedTo) {
     const { data: assignee, error: assigneeError } = await supabase
       .from('project_members')
       .select('user_id')
-      .eq('project_id', projectId)
-      .eq('user_id', assignedTo)
+      .eq('project_id', result.data.projectId)
+      .eq('user_id', result.data.assignedTo)
       .maybeSingle()
 
     if (assigneeError) throw new Error(assigneeError.message)
@@ -76,18 +76,18 @@ export async function createTask(formData: FormData) {
   }
 
   const { error } = await supabase.from('tasks').insert({
-    title:       title.trim(),
-    description: description?.trim() || null,
-    project_id:  projectId,
-    priority:    normalizedPriority,
-    assigned_to: assignedTo || null,
-    due_date:    dueDate || null,
+    title: result.data.title.trim(),
+    description: result.data.description?.trim() || null,
+    project_id: result.data.projectId,
+    priority: result.data.priority,
+    assigned_to: result.data.assignedTo || null,
+    due_date: result.data.dueDate || null,
   })
 
   if (error) throw new Error(error.message)
   revalidatePath('/dashboard')
   revalidatePath('/tasks')
-  revalidatePath(`/projects/${projectId}`)
+  revalidatePath(`/projects/${result.data.projectId}`)
 }
 
 export async function deleteTask(taskId: string) {

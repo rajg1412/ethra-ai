@@ -1,8 +1,7 @@
 import React from 'react'
-import { Plus, ArrowUpRight, CheckCircle2, Clock, AlertCircle, BarChart3 } from 'lucide-react'
+import { Plus, CheckCircle2, Clock, AlertCircle, BarChart3 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { NewProjectModal } from '@/components/NewProjectModal'
 import { getDashboardStats } from './actions'
 import Link from 'next/link'
@@ -10,9 +9,24 @@ import Link from 'next/link'
 const iconMap: Record<string, React.ElementType> = { BarChart3, CheckCircle2, Clock, AlertCircle }
 
 const statusStyle: Record<string, string> = {
-  todo:        'bg-slate-100 text-slate-600',
+  todo: 'bg-slate-100 text-slate-600',
   in_progress: 'bg-slate-900 text-white',
-  completed:   'bg-black text-white',
+  completed: 'bg-black text-white',
+}
+
+type Task = {
+  id: string
+  title: string
+  status: 'todo' | 'in_progress' | 'completed'
+  due_date: string | null
+  projects: { name: string } | null
+}
+
+type Project = {
+  id: string
+  name: string
+  project_members: { count: number }[]
+  completionPct: number
 }
 
 export default async function DashboardPage() {
@@ -20,11 +34,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-black tracking-tight">Dashboard</h1>
-          <p className="text-sm text-slate-500 mt-1">Welcome back — here's what's happening.</p>
+          <p className="text-sm text-slate-500 mt-1">Welcome back. Current status below.</p>
         </div>
         <NewProjectModal>
           <button className="inline-flex items-center justify-center bg-black hover:bg-slate-800 text-white text-sm font-medium h-9 px-4 rounded-md gap-2 cursor-pointer transition-colors">
@@ -34,7 +47,6 @@ export default async function DashboardPage() {
         </NewProjectModal>
       </div>
 
-      {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => {
           const Icon = iconMap[stat.icon]
@@ -55,20 +67,19 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Tasks */}
         <Card className="lg:col-span-2 bg-white border-slate-200 shadow-none">
           <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
             <CardTitle className="text-base font-bold text-black">Recent Tasks</CardTitle>
             <Link href="/tasks">
               <Button variant="ghost" size="sm" className="text-xs text-slate-500 hover:text-black hover:bg-slate-100 h-7">
-                View all →
+                View all
               </Button>
             </Link>
           </CardHeader>
           <CardContent className="p-0">
             {recentTasks.length === 0 ? (
               <p className="text-center py-10 text-sm text-slate-400">No tasks yet.</p>
-            ) : recentTasks.map((task: any) => (
+            ) : recentTasks.map((task: Task) => (
               <div
                 key={task.id}
                 className="flex items-center justify-between px-5 py-3.5 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors group"
@@ -84,7 +95,7 @@ export default async function DashboardPage() {
                     {task.status?.replace('_', ' ')}
                   </span>
                   <span className="text-xs text-slate-400 min-w-16 text-right hidden sm:block">
-                    {task.due_date ? new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
+                    {task.due_date ? new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}
                   </span>
                 </div>
               </div>
@@ -92,7 +103,6 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Active Projects */}
         <Card className="bg-white border-slate-200 shadow-none">
           <CardHeader className="border-b border-slate-100 pb-4">
             <CardTitle className="text-base font-bold text-black">Active Projects</CardTitle>
@@ -100,14 +110,14 @@ export default async function DashboardPage() {
           <CardContent className="p-5 space-y-4">
             {activeProjects.length === 0 ? (
               <p className="text-center py-6 text-sm text-slate-400">No projects.</p>
-            ) : activeProjects.map((project: any) => (
+            ) : activeProjects.map((project: Project) => (
               <div key={project.id} className="space-y-1.5">
                 <div className="flex justify-between items-center text-sm">
                   <span className="font-medium text-slate-700 truncate">{project.name}</span>
-                  <span className="text-slate-400 text-xs ml-2">—</span>
+                  <span className="text-slate-400 text-xs ml-2">{project.completionPct}%</span>
                 </div>
                 <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-black rounded-full" style={{ width: '60%' }} />
+                  <div className="h-full bg-black rounded-full" style={{ width: `${project.completionPct}%` }} />
                 </div>
               </div>
             ))}
